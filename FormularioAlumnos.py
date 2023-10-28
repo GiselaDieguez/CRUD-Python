@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as mb
+from tkcalendar import DateEntry
+from datetime import datetime
 from PIL import Image, ImageTk
 
 # Importa la clase Alumnos
@@ -26,6 +28,14 @@ class AplicacionCRUD:
         # Crea un nuevo estilo y configura el color de fondo
         estilo = ttk.Style()
         estilo.configure('Fondo.TFrame', background='lightblue')
+        estilo.configure("TButton",
+        background="green",
+        foreground="green",
+        font=("Arial", 12),
+        borderwidth=2,
+        relief="flat",
+        cursor="hand2",
+    )
 
         # Crea el marco y asigna el estilo personalizado
         self.marco_alta = ttk.Frame(ventana, style='Fondo.TFrame')
@@ -108,7 +118,7 @@ class AplicacionCRUD:
         label_direccion = tk.Label(self.marco_alta, text="Dirección:", background="lightblue")
 
         entry_nombre = ttk.Entry(self.marco_alta)
-        entry_fecha = ttk.Entry(self.marco_alta)
+        entry_fecha = DateEntry(self.marco_alta, date_pattern="dd/mm/yyyy", maxdate=datetime.today().date())
         entry_direccion = ttk.Entry(self.marco_alta)
 
         label_nombre.grid(row=0, column=0, padx=5, pady=5)
@@ -123,6 +133,9 @@ class AplicacionCRUD:
         boton_guardar = ttk.Button(self.marco_alta, text="Guardar", command=lambda: self.guardar_alumno(entry_nombre.get(), entry_fecha.get(), entry_direccion.get()))
         boton_guardar.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
+        entry_nombre.delete(0, 'end')
+        entry_fecha.delete(0, 'end')
+        entry_direccion.delete(0, 'end')
         # Agregar el marco a la ventana principal
         self.marco_alta.pack()
 
@@ -131,7 +144,8 @@ class AplicacionCRUD:
         if nombre and fecha and direccion:
             datos = (nombre, fecha, direccion)
             resultado = self.alumno1.alta(datos)
-            mb.showinfo("Resultado", resultado)
+            mb.showinfo(title= "Confirmación", message=f"Se ha dado de alta al alumno/a: {nombre}")
+
             # Actualizar la lista de alumnos si es necesario
             self.actualizar_tabla()
         else:
@@ -147,14 +161,14 @@ class AplicacionCRUD:
 
         # Insertar los nuevos registros en la tabla en el orden correcto
         for alumno in registros:
-            self.tree.insert("", "end", values=(alumno[0], alumno[1], alumno[2], alumno[3]))
+            self.tree.insert("", 0, values=(alumno[0], alumno[1], alumno[2], alumno[3]))
 
 
     def mostrar_formulario_modificar(self):
         for widget in self.marco_alta.winfo_children():
             widget.destroy()
 
-        label_legajo = tk.Label(self.marco_alta, text="Legajo del alumno a modificar:", background="lightblue")
+        label_legajo = tk.Label(self.marco_alta, text="Legajo del alumno:", background="lightblue")
         entry_legajo = ttk.Entry(self.marco_alta)
         label_legajo.grid(row=0, column=0, padx=5, pady=5)
         entry_legajo.grid(row=0, column=1, padx=5, pady=5)
@@ -193,7 +207,8 @@ class AplicacionCRUD:
                     if nombre and fecha_nacimiento and direccion:
                         datos_modificados = (nombre, fecha_nacimiento, direccion, legajo)
                         resultado = self.alumno1.modificacion(datos_modificados)
-                        mb.showinfo("Resultado", resultado)
+                        mb.showinfo(title= "Confirmación", message=f"Se ha actualizado la información del alumno/a: {nombre}")
+
                         # Actualizar la tabla
                         self.actualizar_tabla()
                         self.marco_alta.destroy()
@@ -214,7 +229,7 @@ class AplicacionCRUD:
         for widget in self.marco_alta.winfo_children():
             widget.destroy()
 
-        label_legajo = tk.Label(self.marco_alta, text="Legajo del alumno a eliminar:", background="lightblue")
+        label_legajo = tk.Label(self.marco_alta, text="Legajo del alumno:", background="lightblue")
         entry_legajo = ttk.Entry(self.marco_alta)
         label_legajo.grid(row=0, column=0, padx=5, pady=5)
         entry_legajo.grid(row=0, column=1, padx=5, pady=5)
@@ -224,7 +239,7 @@ class AplicacionCRUD:
             if legajo:
                 resultado = self.alumno1.baja((legajo,))
                 if resultado > 0:
-                    mb.showinfo("Resultado", f"Alumno con legajo {legajo} eliminado exitosamente.")
+                    mb.showinfo("Resultado", f"Alumno con legajo {legajo} ha sido eliminado exitosamente.")
                     # Actualizar la tabla
                     self.actualizar_tabla()
                     self.marco_alta.destroy()
@@ -243,17 +258,18 @@ class AplicacionCRUD:
             widget.destroy()
 
         # Crear una tabla para mostrar los alumnos
-        self.tree = ttk.Treeview(self.marco_alta, columns=("Legajo", "Nombre", "Fecha Nacimiento", "Dirección"))
+        self.tree = ttk.Treeview(self.marco_alta, columns=("#","Legajo", "Nombre", "Fecha Nacimiento", "Dirección"))
 
         # Definir las columnas
         columnas = [
+            ("#", 40),
             ("Legajo", 80),
             ("Nombre", 200),
             ("Fecha Nacimiento", 200),
             ("Dirección", 200)
         ]
 
-        for col_name, col_width in columnas:
+        for i, (col_name, col_width) in enumerate(columnas):
             self.tree.heading("#{}".format(columnas.index((col_name, col_width))), text=col_name, anchor="center")
             self.tree.column("#{}".format(columnas.index((col_name, col_width))), width=col_width, anchor="center")
 
