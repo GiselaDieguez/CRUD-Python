@@ -4,6 +4,8 @@ from tkinter import messagebox as mb
 from tkcalendar import DateEntry
 from datetime import datetime
 from PIL import Image, ImageTk
+import pandas as pd
+from tkinter import filedialog
 
 from alumnos import Alumnos
 
@@ -315,7 +317,23 @@ class AplicacionCRUD:
 
         self.marco_alta.pack()
 
+        boton_exportar_excel = tk.Button(self.marco_alta, text="Exportar a Excel",bg="lightgreen",command=self.exportar_a_excel)
+        boton_exportar_excel.grid(row=3, column=0, padx=5, pady=5)
 
+    def exportar_a_excel(self):
+            registros = self.alumno1.recuperar_todos()
+            if registros:
+                df = pd.DataFrame(registros, columns=["Legajo", "Nombre", "Fecha Nacimiento", "Dirección"])
+
+                file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Archivos Excel", "*.xlsx")])
+
+                if file_path:
+                    df.to_excel(file_path, index=False)
+                    mb.showinfo("Exportado", "Los datos fueron exportados a Excel con éxito.")
+                else:
+                    mb.showinfo("Operación cancelada", "La exportación a Excel fue cancelada.")
+            else:
+                mb.showinfo("Sin datos", "No hay datos para exportar.")
 
 if __name__ == "__main__":
     ventana = tk.Tk()
