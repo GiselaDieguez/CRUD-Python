@@ -14,6 +14,16 @@ class AplicacionCRUD:
         self.ventana.title("Gestión de Alumnos")
         self.ventana.iconbitmap("img/student.ico")
         self.ventana.configure(bg="lightblue")
+
+        self.modo_oscuro = False  # Bandera para rastrear el modo claro/oscuro
+        # Cargar la imagen para el botón de modo oscuro
+        self.imagen_modo_oscuro = Image.open("img/modo-oscuro.png")  # Reemplaza "modo_oscuro.png" con la ruta de tu imagen
+        self.imagen_redimensionada = self.imagen_modo_oscuro.resize((22, 22))
+        self.imagen_modo_oscuro = ImageTk.PhotoImage(self.imagen_redimensionada)
+
+        # Crear un botón para cambiar entre modos claro y oscuro
+        self.boton_modo_oscuro = ttk.Button(ventana, image=self.imagen_modo_oscuro, command=self.cambiar_modo)
+        self.boton_modo_oscuro.pack()
 		
 		# Carga la imagen del logo
         self.logo = Image.open("img/logo1.png")
@@ -27,6 +37,7 @@ class AplicacionCRUD:
 
         # Crea un nuevo estilo y configura el color de fondo
         estilo = ttk.Style()
+        estilo.configure("Label.TLabel", background="lightblue", foreground="black", font=("Arial", 11))
         estilo.configure('Fondo.TFrame', background='lightblue')
         estilo.configure("TButton",
         background="green",
@@ -60,7 +71,35 @@ class AplicacionCRUD:
         # Crea una instancia de la clase Alumnos
         self.alumno1 = Alumnos()
 
-        # Crea una tabla para mostrar los alumnos
+
+    def cambiar_modo(self):
+        # Cambiar entre modo claro y oscuro
+        if self.modo_oscuro:
+            self.ventana.configure(bg="lightblue")
+            self.label_logo.configure(bg="lightblue")
+            estilo = ttk.Style()
+            estilo.configure('Fondo.TFrame', background='lightblue')
+            estilo.configure("Label.TLabel", background="lightblue", foreground="black", font=("Arial", 11))
+
+            #Cambiar imagen
+            self.imagen_modo_oscuro = Image.open("img/modo-oscuro.png") 
+            self.imagen_redimensionada = self.imagen_modo_oscuro.resize((22, 22))
+            self.imagen_modo_oscuro = ImageTk.PhotoImage(self.imagen_redimensionada)
+            self.boton_modo_oscuro["image"] = self.imagen_modo_oscuro
+        else:
+            self.ventana.configure(bg="#313d47")
+            self.label_logo.configure(bg="#313d47")
+            estilo = ttk.Style()
+            estilo.configure('Fondo.TFrame', background='#313d47')
+            estilo.configure("Label.TLabel", background="#313d47", foreground="white", font=("Arial", 11))
+            #Cambiar imagen
+            self.imagen_modo_claro = Image.open("img/modo-claro.png") 
+            self.imagen_redimensionada = self.imagen_modo_claro.resize((22, 22))
+            self.imagen_modo_claro = ImageTk.PhotoImage(self.imagen_redimensionada)
+            self.boton_modo_oscuro["image"] = self.imagen_modo_claro
+
+
+        self.modo_oscuro = not self.modo_oscuro
 
     def mostrar_ayuda(self):
         # Limpia el marco actual
@@ -101,8 +140,8 @@ class AplicacionCRUD:
             7- Se visualiza un cartel en modo de confirmación indicando que se modificó el alumno
         """
 
-        etiqueta_instrucciones = ttk.Label(self.marco_alta, text=instrucciones, wraplength=600, justify="left", background="lightblue")
-        etiqueta_instrucciones.grid(row=0, column=0, padx=5, pady=5)
+        etiqueta_instrucciones = ttk.Label(self.marco_alta, text=instrucciones, wraplength=700, justify="left", style="Label.TLabel")
+        etiqueta_instrucciones.grid(row=0, column=0, padx=20, pady=5)
 
         # Asegura que se vean los cambios en la ventana
         self.marco_alta.pack()
@@ -113,9 +152,9 @@ class AplicacionCRUD:
             widget.destroy()
 
         # Etiquetas y campos de entrada para el formulario de alta
-        label_nombre = tk.Label(self.marco_alta, text="Nombre:", background="lightblue")
-        label_fecha = tk.Label(self.marco_alta, text="Fecha de Nacimiento:", background="lightblue")
-        label_direccion = tk.Label(self.marco_alta, text="Dirección:", background="lightblue")
+        label_nombre = ttk.Label(self.marco_alta, text="Nombre:", style="Label.TLabel")
+        label_fecha = ttk.Label(self.marco_alta, text="Fecha de Nacimiento:", style="Label.TLabel")
+        label_direccion = ttk.Label(self.marco_alta, text="Dirección:", style="Label.TLabel")
 
         entry_nombre = ttk.Entry(self.marco_alta)
         entry_fecha = DateEntry(self.marco_alta, date_pattern="dd/mm/yyyy", maxdate=datetime.today().date())
@@ -130,7 +169,7 @@ class AplicacionCRUD:
         entry_direccion.grid(row=2, column=1, padx=5, pady=5)
 
         # Botón para guardar el alumno
-        boton_guardar = ttk.Button(self.marco_alta, text="Guardar", command=lambda: self.guardar_alumno(entry_nombre.get(), entry_fecha.get(), entry_direccion.get()))
+        boton_guardar = ttk.Button(self.marco_alta, text="Guardar",command=lambda: self.guardar_alumno(entry_nombre.get(), entry_fecha.get(), entry_direccion.get()))
         boton_guardar.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
         entry_nombre.delete(0, 'end')
@@ -168,7 +207,7 @@ class AplicacionCRUD:
         for widget in self.marco_alta.winfo_children():
             widget.destroy()
 
-        label_legajo = tk.Label(self.marco_alta, text="Legajo del alumno:", background="lightblue")
+        label_legajo = ttk.Label(self.marco_alta, text="Legajo del alumno:", style="Label.TLabel")
         entry_legajo = ttk.Entry(self.marco_alta)
         label_legajo.grid(row=0, column=0, padx=5, pady=5)
         entry_legajo.grid(row=0, column=1, padx=5, pady=5)
@@ -180,11 +219,11 @@ class AplicacionCRUD:
                 # Mostrar los datos del alumno en el formulario de modificación
                 nombre, fecha_nacimiento, direccion = datos_alumno[0]
 
-                label_nombre = tk.Label(self.marco_alta, text="Nombre:", background="lightblue")
+                label_nombre = ttk.Label(self.marco_alta, text="Nombre:", style="Label.TLabel")
                 entry_nombre = ttk.Entry(self.marco_alta)
-                label_fecha = tk.Label(self.marco_alta, text="Fecha de Nacimiento:", background="lightblue")
+                label_fecha = ttk.Label(self.marco_alta, text="Fecha de Nacimiento:", style="Label.TLabel")
                 entry_fecha = ttk.Entry(self.marco_alta)
-                label_direccion = tk.Label(self.marco_alta, text="Dirección:", background="lightblue")
+                label_direccion = ttk.Label(self.marco_alta, text="Dirección:", style="Label.TLabel")
                 entry_direccion = ttk.Entry(self.marco_alta)
 
                 label_nombre.grid(row=1, column=0, padx=5, pady=5)
@@ -229,7 +268,7 @@ class AplicacionCRUD:
         for widget in self.marco_alta.winfo_children():
             widget.destroy()
 
-        label_legajo = tk.Label(self.marco_alta, text="Legajo del alumno:", background="lightblue")
+        label_legajo = ttk.Label(self.marco_alta, text="Legajo del alumno:", style="Label.TLabel")
         entry_legajo = ttk.Entry(self.marco_alta)
         label_legajo.grid(row=0, column=0, padx=5, pady=5)
         entry_legajo.grid(row=0, column=1, padx=5, pady=5)
