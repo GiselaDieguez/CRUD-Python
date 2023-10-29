@@ -33,6 +33,9 @@ class AplicacionCRUD:
         self.label_logo = tk.Label(ventana, image=self.logo, bg="lightblue")
         self.label_logo.pack()
 
+        self.label_bienvenidos = ttk.Label(ventana, text="Bienvenidos a la aplicación", style="Titulo.TLabel")
+        self.label_bienvenidos.pack()
+
         estilo = ttk.Style()
         estilo.configure("Label.TLabel", background="lightblue", foreground="black", font=("Arial", 11))
         estilo.configure('Fondo.TFrame', background='lightblue')
@@ -44,6 +47,7 @@ class AplicacionCRUD:
         relief="flat",
         cursor="hand2")
         estilo.configure("BoldLabel.TLabel", background="lightblue", font=("Arial", 11, "bold"))
+        estilo.configure("Titulo.TLabel", background="lightblue", font=("Arial", 14, "bold"))
 
         self.marco_alta = ttk.Frame(ventana, style='Fondo.TFrame')
 
@@ -56,6 +60,7 @@ class AplicacionCRUD:
         self.barra_menu.add_cascade(label="Ayuda", menu=menu_ayuda)
 
         menu_alumnos.add_command(label="Cargar alumno", command=self.mostrar_formulario_alta)
+        menu_alumnos.add_command(label="Buscar alumno", command=self.buscar_alumno_por_legajo)
         menu_alumnos.add_command(label="Modificar alumno", command=self.mostrar_formulario_modificar)
         menu_alumnos.add_command(label="Listado alumnos", command=self.mostrar_listado_alumnos)
         menu_alumnos.add_command(label="Eliminar alumno", command=self.mostrar_formulario_eliminar)
@@ -73,6 +78,7 @@ class AplicacionCRUD:
             estilo.configure('Fondo.TFrame', background='lightblue')
             estilo.configure("Label.TLabel", background="lightblue", foreground="black", font=("Arial", 11))
             estilo.configure("BoldLabel.TLabel", background="lightblue", foreground="black", font=("Arial", 11, "bold"))
+            estilo.configure("Titulo.TLabel", background="lightblue", foreground="black", font=("Arial", 14, "bold"))
 
             self.imagen_modo_oscuro = Image.open("img/modo-oscuro.png") 
             self.imagen_redimensionada = self.imagen_modo_oscuro.resize((22, 22))
@@ -85,6 +91,7 @@ class AplicacionCRUD:
             estilo.configure('Fondo.TFrame', background='#313d47')
             estilo.configure("Label.TLabel", background="#313d47", foreground="white", font=("Arial", 11))
             estilo.configure("BoldLabel.TLabel", background="#313d47", foreground="white", font=("Arial", 11, "bold"))
+            estilo.configure("Titulo.TLabel", background="#313d47", foreground="white", font=("Arial", 14, "bold"))
 
             self.imagen_modo_claro = Image.open("img/modo-claro.png") 
             self.imagen_redimensionada = self.imagen_modo_claro.resize((22, 22))
@@ -99,8 +106,9 @@ class AplicacionCRUD:
         for widget in self.marco_alta.winfo_children():
             widget.destroy()
 
-        instrucciones = """
-        ▶ Alta alumno:
+        self.label_bienvenidos.pack_forget()
+
+        instrucciones = """         ▶ Alta alumno:
             1- Presionar del menú desplegable la opción "Cargar Alumno"
             2- Completar los campos Nombre, Fecha de Nacimiento y Dirección
             3- Presionar el botón [Confirmar]
@@ -116,6 +124,9 @@ class AplicacionCRUD:
             1- Presionar del menú desplegable la opción "Listado de alumnos"
             2- Presionar el botón [Listado alumnos]
             3- Se visualiza un listado de los alumnos con sus respectivos datos
+            4- Haz clic en el botón [Exportar a Excel]
+            5- Selecciona la ubicación donde deseas guardar el archivo y presiona el botón [Guardar]
+            6- El sistema generará un archivo Excel con todos los datos de los alumnos 
 
         ▶ Eliminar alumno:
             1- Presionar del menú desplegable la opción "Eliminar alumno"
@@ -133,8 +144,8 @@ class AplicacionCRUD:
             7- Se visualiza un cartel en modo de confirmación indicando que se modificó el alumno
         """
 
-        etiqueta_instrucciones = ttk.Label(self.marco_alta, text=instrucciones, wraplength=700, justify="left", style="Label.TLabel")
-        etiqueta_instrucciones.grid(row=0, column=0, padx=20, pady=5)
+        etiqueta_instrucciones = ttk.Label(self.marco_alta, text=instrucciones, wraplength=1500, justify="left", style="Label.TLabel")
+        etiqueta_instrucciones.grid(row=0, column=0, padx=0, pady=1)
 
         self.marco_alta.pack()
 
@@ -142,6 +153,8 @@ class AplicacionCRUD:
     def mostrar_formulario_alta(self):
         for widget in self.marco_alta.winfo_children():
             widget.destroy()
+
+        self.label_bienvenidos.pack_forget()
 
         label_titulo = ttk.Label(self.marco_alta, text="Cargar alumno", style="BoldLabel.TLabel", justify="center")
 
@@ -193,9 +206,64 @@ class AplicacionCRUD:
             self.tree.insert("", 0, values=(alumno[0], alumno[1], alumno[2], alumno[3]))
 
 
+    def buscar_alumno_por_legajo(self):
+        for widget in self.marco_alta.winfo_children():
+            widget.destroy()
+
+        self.label_bienvenidos.pack_forget()
+
+        label_titulo = ttk.Label(self.marco_alta, text="Buscar alumno", style="BoldLabel.TLabel", justify="center")
+
+        label_legajo = ttk.Label(self.marco_alta, text="Legajo del alumno:", style="Label.TLabel")
+        entry_legajo = ttk.Entry(self.marco_alta)
+
+        label_titulo.grid(row=0, columnspan=3, column=0, padx=5, pady=5)
+        label_legajo.grid(row=1, column=0, padx=5, pady=5)
+        entry_legajo.grid(row=1, column=1, padx=5, pady=5)
+
+        def buscar_datos():
+            legajo = entry_legajo.get()
+            datos_alumno = self.alumno1.consulta((legajo,))
+            if datos_alumno:
+                nombre, fecha_nacimiento, direccion = datos_alumno[0]
+
+                label_nombre = ttk.Label(self.marco_alta, text="Nombre:", style="Label.TLabel")
+                entry_nombre = ttk.Entry(self.marco_alta)
+                label_fecha = ttk.Label(self.marco_alta, text="Fecha de Nacimiento:", style="Label.TLabel")
+                entry_fecha = ttk.Entry(self.marco_alta)
+                label_direccion = ttk.Label(self.marco_alta, text="Dirección:", style="Label.TLabel")
+                entry_direccion = ttk.Entry(self.marco_alta)
+
+                label_nombre.grid(row=2, column=0, padx=5, pady=5)
+                entry_nombre.grid(row=2, column=1, padx=5, pady=5)
+                label_fecha.grid(row=3, column=0, padx=5, pady=5)
+                entry_fecha.grid(row=3, column=1, padx=5, pady=5)
+                label_direccion.grid(row=4, column=0, padx=5, pady=5)
+                entry_direccion.grid(row=4, column=1, padx=5, pady=5)
+
+                entry_nombre.insert(0, nombre)
+                entry_fecha.insert(0, fecha_nacimiento)
+                entry_direccion.insert(0, direccion)
+
+                # Deshabilitar los campos
+                entry_nombre.configure(state="readonly")
+                entry_fecha.configure(state="readonly")
+                entry_direccion.configure(state="readonly")
+            else:
+                mb.showerror("Error", "No se encontró al alumno con el legajo proporcionado.")
+
+        boton_buscar = tk.Button(self.marco_alta, text="Consultar", command=buscar_datos, bg="lightgreen")
+        boton_buscar.grid(row=1, column=2, padx=5, pady=5)
+
+        self.marco_alta.pack()
+
+
+
     def mostrar_formulario_modificar(self):
         for widget in self.marco_alta.winfo_children():
             widget.destroy()
+
+        self.label_bienvenidos.pack_forget()
 
         label_titulo = ttk.Label(self.marco_alta, text="Modificar alumno", style="BoldLabel.TLabel", justify="center")
 
@@ -246,7 +314,7 @@ class AplicacionCRUD:
                         mb.showerror("Error", "Por favor, complete todos los campos.")
 
                 boton_guardar = tk.Button(self.marco_alta, text="Guardar Cambios", command=guardar_cambios, bg="lightgreen")
-                boton_guardar.grid(row=5, column=0, columnspan=2, padx=5, pady=5)
+                boton_guardar.grid(row=5, column=0, columnspan=3, padx=5, pady=5)
             else:
                 mb.showerror("Error", "No se encontró al alumno con el legajo proporcionado.")
 
@@ -258,6 +326,8 @@ class AplicacionCRUD:
     def mostrar_formulario_eliminar(self):
         for widget in self.marco_alta.winfo_children():
             widget.destroy()
+
+        self.label_bienvenidos.pack_forget()
 
         label_titulo = ttk.Label(self.marco_alta, text="Eliminar alumno", style="BoldLabel.TLabel", justify="center")
 
@@ -288,6 +358,8 @@ class AplicacionCRUD:
     def mostrar_listado_alumnos(self):
         for widget in self.marco_alta.winfo_children():
             widget.destroy()
+
+        self.label_bienvenidos.pack_forget()
 
         label_titulo = ttk.Label(self.marco_alta, text="Listado de alumnos", style="BoldLabel.TLabel", justify="center")
 
